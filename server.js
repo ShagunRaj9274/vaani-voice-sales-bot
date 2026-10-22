@@ -82,19 +82,46 @@ function sendJson(res, status, obj) {
 }
 
 async function callGemini({ model, system, messages, max_tokens }) {
-  if (!API_KEY) throw Object.assign(new Error('The server is missing ANTHROPIC_API_KEY.'), { status: 503 });
-  const r = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model, max_tokens, system, messages }),
-  });
-  if (!r.ok) {
-    const detail = (await r.text()).slice(0, 300);
-    console.error('Gemini error', r.status, detail);
-    throw Object.assign(new Error('The AI service returned an error (' + r.status + ').'), { status: 502 });
+  if (!API_KEY) {
+    throw Object.assign(
+      new Error('The server is missing GEMINI_API_KEY.'),
+      { status: 503 }
+    );
   }
-  const data = await r.json();
-  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+
+  const contents = messages.map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: String(m.content || '') }]
+  }));
+
+  const response = await fetch(API_URL + '?key=' + encodeURIComponent(API_KEY), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: String(system || '') }]
+      },
+      contents,
+      generationConfig: {
+        maxOutputTokens: max_tokens
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 1000);
+    console.error('Gemini error', response.status, detail);
+    throw Object.assign(
+      new Error('The AI service returned an error (' + response.status + ').'),
+      { status: 502 }
+    );
+  }
+
+  const data = await response.json();
+  return (data.candidates?.[0]?.content?.parts || [])
+    .filter((part) => typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('');
 }
 
 /* ---------- prompts ---------- */
@@ -313,4 +340,5 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Vaani running on http://localhost:${PORT}`);
   if (!API_KEY) console.warn('Warning: GEMINI_API_KEY is not set. The bot cannot answer until it is.');
 });
+
 
