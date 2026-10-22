@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vaani – AI Voice Sales Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="#" aria-label="Vaani home">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="brand-name">Vaani</span>
+      <span class="brand-sub">AI voice sales desk</span>
+    </a>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tabCall" role="tab" aria-selected="true" aria-controls="viewCall">Live call</button>
+      <button class="tab" id="tabHistory" role="tab" aria-selected="false" aria-controls="viewHistory">Call history <span class="count" id="historyCount">0</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- LIVE CALL -->
+  <section id="viewCall" class="view" role="tabpanel" aria-labelledby="tabCall">
+    <div class="console">
+      <aside class="desk" aria-label="Call desk">
+        <h2>Call desk</h2>
+
+        <div id="browserNote" class="note warn" hidden>
+          Voice input needs Chrome or Edge. In this browser you can still hear the bot and type your replies.
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="preset">Product to sell</label>
+            <select id="preset"></select>
+          </div>
+          <div class="field">
+            <label for="lang">Call language</label>
+            <select id="lang">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+            </select>
+          </div>
+        </div>
+
+        <details class="product-details">
+          <summary>Edit product details</summary>
+          <div class="field"><label for="fProduct">Product name</label><input id="fProduct" type="text" maxlength="120"></div>
+          <div class="field"><label for="fCompany">Company</label><input id="fCompany" type="text" maxlength="120"></div>
+          <div class="field"><label for="fDesc">What it does</label><textarea id="fDesc" rows="3" maxlength="1200"></textarea></div>
+          <div class="field"><label for="fFeatures">Key features</label><textarea id="fFeatures" rows="4" maxlength="1500"></textarea></div>
+          <div class="field"><label for="fPricing">Pricing</label><textarea id="fPricing" rows="2" maxlength="800"></textarea></div>
+          <div class="field"><label for="fOffer">Offer or next step</label><textarea id="fOffer" rows="2" maxlength="600"></textarea></div>
+          <div class="field"><label for="fAudience">Best fit for</label><textarea id="fAudience" rows="2" maxlength="600"></textarea></div>
+          <div class="field"><label for="fAgent">Bot name</label><input id="fAgent" type="text" maxlength="40" value="Aisha"></div>
+        </details>
+
+        <div class="consent">
+          <label class="check" for="consent">
+            <input id="consent" type="checkbox">
+            <span>I agree that this call is recorded and transcribed, and that my speech is processed by my browser's speech service and an AI service to run the conversation.</span>
+          </label>
+          <p class="hint">The recording captures your microphone. Use speakers, not headphones, if you also want the bot's voice in the recording.</p>
+        </div>
+
+        <div class="callbar" id="callbar" data-phase="idle">
+          <div class="statusline">
+            <span class="led" aria-hidden="true"></span>
+            <span id="statusText" role="status">Ready to start</span>
+            <span class="timer" id="timer" aria-label="Call duration">00:00</span>
+          </div>
+          <div class="meter" id="meter" aria-hidden="true"></div>
+        </div>
+
+        <div class="buttons">
+          <button class="btn start" id="startBtn" disabled>Start call</button>
+          <button class="btn end" id="endBtn" disabled>End call</button>
+        </div>
+
+        <div id="errorBanner" class="note bad" role="alert" hidden></div>
+      </aside>
+
+      <div class="stage">
+        <div class="stage-head">
+          <h2>Live conversation</h2>
+          <span class="chip" id="callChip">No active call</span>
+        </div>
+        <div class="chat" id="chat" role="log" aria-live="polite" aria-label="Conversation transcript">
+          <div class="empty" id="chatEmpty">
+            <p class="empty-title">The conversation appears here as it happens.</p>
+            <p>Pick a product, tick the consent box and press Start call. The bot speaks first. Answer out loud, or type a reply below.</p>
+          </div>
+        </div>
+        <form class="typebar" id="typeForm" autocomplete="off">
+          <label class="sr-only" for="typeInput">Type a reply</label>
+          <input id="typeInput" type="text" placeholder="Or type your reply here" disabled maxlength="500">
+          <button class="btn small" id="typeSend" type="submit" disabled>Send</button>
+        </form>
+        <div id="result" class="result" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="viewHistory" class="view" role="tabpanel" aria-labelledby="tabHistory" hidden>
+    <div class="history">
+      <div class="hist-list" aria-label="Previous calls">
+        <h2>Previous calls</h2>
+        <div id="historyList" class="hlist"></div>
+      </div>
+      <div class="hist-detail" id="historyDetail">
+        <div class="empty"><p class="empty-title">Select a call to see its recording, summary and transcript.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

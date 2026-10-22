@@ -1,0 +1,13 @@
+{
+  "name": "vaani-voice-sales-bot",
+  "version": "1.0.0",
+  "description": "AI voice sales bot: live voice call, live transcript, recording, AI summary, sales status and call history.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
