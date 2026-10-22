@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 /*
  * Vaani server: zero dependencies (Node 18+).
  *  - serves the static app from /public
@@ -11,10 +11,10 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = Number(process.env.PORT) || 3000;
-const API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const API_URL = process.env.ANTHROPIC_API_URL || 'https://api.anthropic.com/v1/messages';
-const CHAT_MODEL = process.env.CHAT_MODEL || 'claude-haiku-5-5';
-const ANALYSIS_MODEL = process.env.ANALYSIS_MODEL || 'claude-sonnet-5-5';
+const API_KEY = process.env.GEMINI_API_KEY || '';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' + (process.env.GEMINI_MODEL || 'gemini-2.5-flash') + ':generateContent';
+const CHAT_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const ANALYSIS_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const STATUSES = ['Converted', 'Interested', 'Follow-up Required', 'Not Interested', 'Demo Requested', 'No Response'];
@@ -81,7 +81,7 @@ function sendJson(res, status, obj) {
   res.end(body);
 }
 
-async function callClaude({ model, system, messages, max_tokens }) {
+async function callGemini({ model, system, messages, max_tokens }) {
   if (!API_KEY) throw Object.assign(new Error('The server is missing ANTHROPIC_API_KEY.'), { status: 503 });
   const r = await fetch(API_URL, {
     method: 'POST',
@@ -90,7 +90,7 @@ async function callClaude({ model, system, messages, max_tokens }) {
   });
   if (!r.ok) {
     const detail = (await r.text()).slice(0, 300);
-    console.error('Anthropic error', r.status, detail);
+    console.error('Gemini error', r.status, detail);
     throw Object.assign(new Error('The AI service returned an error (' + r.status + ').'), { status: 502 });
   }
   const data = await r.json();
@@ -194,7 +194,7 @@ function normalizeHistory(history) {
 async function handleChat(body) {
   const system = buildSalesPrompt(body.product, body.agentName, body.language);
   const messages = normalizeHistory(body.history);
-  const reply = (await callClaude({ model: CHAT_MODEL, system, messages, max_tokens: 500 })).trim();
+  const reply = (await callGemini({ model: CHAT_MODEL, system, messages, max_tokens: 500 })).trim();
   if (!reply) throw Object.assign(new Error('The AI returned an empty reply.'), { status: 502 });
   return { reply };
 }
@@ -232,7 +232,7 @@ async function handleAnalyze(body) {
   }
 
   const text = transcript.map((t) => (t.role === 'customer' ? 'Customer: ' : 'Sales bot: ') + t.text).join('\n');
-  const raw = await callClaude({
+  const raw = await callGemini({
     model: ANALYSIS_MODEL,
     system: buildAnalysisPrompt(body.product, body.language),
     messages: [{ role: 'user', content: 'Call transcript:\n\n' + text }],
@@ -311,5 +311,6 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Vaani running on http://localhost:${PORT}`);
-  if (!API_KEY) console.warn('Warning: ANTHROPIC_API_KEY is not set. The bot cannot answer until it is.');
+  if (!API_KEY) console.warn('Warning: GEMINI_API_KEY is not set. The bot cannot answer until it is.');
 });
+
